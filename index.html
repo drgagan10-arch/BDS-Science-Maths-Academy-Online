@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDS Academy | Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+        }
+        nav {
+            background: #1e3a8a;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem;
+            transition: 0.2s;
+        }
+        .nav-links a:hover {
+            background: #3b5e9c;
+            border-radius: 8px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 3rem;
+            border-radius: 24px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .query-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+        }
+        button {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #0f2b6d;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: #1e293b;
+            color: #94a3b8;
+            margin-top: 2rem;
+        }
+        @media (max-width: 768px) {
+            .nav-links a {
+                display: inline-block;
+                margin: 0.5rem;
+            }
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .user-email {
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 30px;
+        }
+        .success-msg {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px;
+            border-radius: 16px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        .error-msg {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 16px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">📚 BDS Academy</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="membership.html">Membership</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="live-classes.html">Live Classes</a>
+            <a href="admin.html">Admin</a>
+        </div>
+        <div class="auth-buttons" id="authButtons">
+            <!-- dynamically filled -->
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Baba Deep Singh Science & Maths Academy</h1>
+            <p>Live interactive classes · Expert faculty · Class 5 to NEET preparation</p>
+            <p style="margin-top: 1rem;">✨ Get membership for affordable monthly plans (Class 5-10: ₹500, 11-12: ₹1000, NEET: ₹2000)</p>
+        </div>
+
+        <div class="features">
+            <div class="card"><i class="fas fa-chalkboard-teacher" style="font-size: 2rem; color:#1e3a8a;"></i><h3>Expert Teachers</h3><p>IIT/NIT alumni with 10+ years experience</p></div>
+            <div class="card"><i class="fas fa-video" style="font-size: 2rem; color:#1e3a8a;"></i><h3>Daily Live Classes</h3><p>Zoom sessions with recordings available</p></div>
+            <div class="card"><i class="fas fa-users" style="font-size: 2rem; color:#1e3a8a;"></i><h3>Doubt Solving</h3><p>24/7 query support & community chat</p></div>
+        </div>
+
+        <!-- Query Section -->
+        <div class="query-form">
+            <h2>Have a question? Ask us</h2>
+            <input type="text" id="queryName" placeholder="Your Name">
+            <input type="tel" id="queryMobile" placeholder="Mobile Number">
+            <textarea id="queryText" rows="4" placeholder="Your query..."></textarea>
+            <button id="submitQueryBtn">Submit Query</button>
+            <div id="queryMessage"></div>
+        </div>
+    </div>
+
+    <footer>
+        © 2025 Baba Deep Singh Science & Maths Academy | Empowering students since 2010
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCEDiAXK2lrXQI_RQMSMC7MlueyNBjKUAQ",
+            authDomain: "bds-onlinr-coaching.firebaseapp.com",
+            projectId: "bds-onlinr-coaching",
+            storageBucket: "bds-onlinr-coaching.firebasestorage.app",
+            messagingSenderId: "904398440973",
+            appId: "1:904398440973:web:cc42490d681d305641e344",
+            measurementId: "G-2T5M0J7S2L"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Update auth buttons in navbar
+        const authDiv = document.getElementById('authButtons');
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authDiv.innerHTML = `<span class="user-email">${user.email}</span> <button id="logoutNavBtn">Logout</button>`;
+                document.getElementById('logoutNavBtn').addEventListener('click', () => signOut(auth));
+            } else {
+                authDiv.innerHTML = `<button id="loginNavBtn">Login / Sign up</button>`;
+                document.getElementById('loginNavBtn').addEventListener('click', () => {
+                    window.location.href = 'membership.html';
+                });
+            }
+        });
+
+        // Query submission with success message
+        const submitBtn = document.getElementById('submitQueryBtn');
+        const queryMessageDiv = document.getElementById('queryMessage');
+
+        submitBtn.addEventListener('click', async () => {
+            const name = document.getElementById('queryName').value.trim();
+            const mobile = document.getElementById('queryMobile').value.trim();
+            const queryText = document.getElementById('queryText').value.trim();
+
+            // Clear previous messages
+            queryMessageDiv.innerHTML = '';
+
+            if (!name || !mobile || !queryText) {
+                queryMessageDiv.innerHTML = '<div class="error-msg">❌ Please fill all fields</div>';
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "queries"), {
+                    name, mobile, query: queryText,
+                    timestamp: Timestamp.now(),
+                    status: 'unread'
+                });
+                // Show success message
+                queryMessageDiv.innerHTML = '<div class="success-msg">✅ Your query has been submitted! Admin will contact you soon.</div>';
+                // Clear form fields
+                document.getElementById('queryName').value = '';
+                document.getElementById('queryMobile').value = '';
+                document.getElementById('queryText').value = '';
+                // Auto-hide success message after 5 seconds
+                setTimeout(() => {
+                    if (queryMessageDiv.firstChild) {
+                        queryMessageDiv.innerHTML = '';
+                    }
+                }, 5000);
+            } catch (err) {
+                queryMessageDiv.innerHTML = `<div class="error-msg">⚠️ Error: ${err.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
