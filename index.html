@@ -23,21 +23,56 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            position: relative;
         }
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
         }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
         .nav-links a {
             color: white;
             text-decoration: none;
-            margin: 0 1rem;
             padding: 0.5rem;
             transition: 0.2s;
         }
         .nav-links a:hover {
             background: #3b5e9c;
             border-radius: 8px;
+        }
+        /* Hamburger menu button (hidden on desktop) */
+        .hamburger {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: white;
+        }
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                background: #1e3a8a;
+                padding: 1rem;
+                margin-top: 1rem;
+                border-radius: 16px;
+            }
+            .nav-links.show {
+                display: flex;
+            }
+            .hamburger {
+                display: block;
+            }
+            .auth-buttons {
+                margin-left: auto;
+            }
         }
         .container {
             max-width: 1200px;
@@ -101,12 +136,6 @@
             color: #94a3b8;
             margin-top: 2rem;
         }
-        @media (max-width: 768px) {
-            .nav-links a {
-                display: inline-block;
-                margin: 0.5rem;
-            }
-        }
         .auth-buttons {
             display: flex;
             gap: 12px;
@@ -138,16 +167,16 @@
 <body>
     <nav>
         <div class="logo">📚 BDS Academy</div>
-        <div class="nav-links">
+        <button class="hamburger" id="hamburger">☰</button>
+        <div class="nav-links" id="navLinks">
             <a href="index.html">Home</a>
             <a href="membership.html">Membership</a>
             <a href="dashboard.html">Dashboard</a>
             <a href="live-classes.html">Live Classes</a>
+            <a href="videos.html">Video Library</a>
             <a href="admin.html">Admin</a>
         </div>
-        <div class="auth-buttons" id="authButtons">
-            <!-- dynamically filled -->
-        </div>
+        <div class="auth-buttons" id="authButtons"></div>
     </nav>
 
     <div class="container">
@@ -159,7 +188,7 @@
 
         <div class="features">
             <div class="card"><i class="fas fa-chalkboard-teacher" style="font-size: 2rem; color:#1e3a8a;"></i><h3>Expert Teachers</h3><p>IIT/NIT alumni with 10+ years experience</p></div>
-            <div class="card"><i class="fas fa-video" style="font-size: 2rem; color:#1e3a8a;"></i><h3>Daily Live Classes</h3><p>Zoom sessions with recordings available</p></div>
+            <div class="card"><i class="fas fa-video" style="font-size: 2rem; color:#1e3a8a;"></i><h3>Daily Live Classes</h3><p>Zoom sessions + recorded library</p></div>
             <div class="card"><i class="fas fa-users" style="font-size: 2rem; color:#1e3a8a;"></i><h3>Doubt Solving</h3><p>24/7 query support & community chat</p></div>
         </div>
 
@@ -196,7 +225,14 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Update auth buttons in navbar
+        // Hamburger menu toggle
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('show');
+        });
+
+        // Auth buttons
         const authDiv = document.getElementById('authButtons');
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -210,7 +246,7 @@
             }
         });
 
-        // Query submission with success message
+        // Query submission
         const submitBtn = document.getElementById('submitQueryBtn');
         const queryMessageDiv = document.getElementById('queryMessage');
 
@@ -219,32 +255,22 @@
             const mobile = document.getElementById('queryMobile').value.trim();
             const queryText = document.getElementById('queryText').value.trim();
 
-            // Clear previous messages
             queryMessageDiv.innerHTML = '';
-
             if (!name || !mobile || !queryText) {
                 queryMessageDiv.innerHTML = '<div class="error-msg">❌ Please fill all fields</div>';
                 return;
             }
-
             try {
                 await addDoc(collection(db, "queries"), {
                     name, mobile, query: queryText,
                     timestamp: Timestamp.now(),
                     status: 'unread'
                 });
-                // Show success message
                 queryMessageDiv.innerHTML = '<div class="success-msg">✅ Your query has been submitted! Admin will contact you soon.</div>';
-                // Clear form fields
                 document.getElementById('queryName').value = '';
                 document.getElementById('queryMobile').value = '';
                 document.getElementById('queryText').value = '';
-                // Auto-hide success message after 5 seconds
-                setTimeout(() => {
-                    if (queryMessageDiv.firstChild) {
-                        queryMessageDiv.innerHTML = '';
-                    }
-                }, 5000);
+                setTimeout(() => { queryMessageDiv.innerHTML = ''; }, 5000);
             } catch (err) {
                 queryMessageDiv.innerHTML = `<div class="error-msg">⚠️ Error: ${err.message}</div>`;
             }
