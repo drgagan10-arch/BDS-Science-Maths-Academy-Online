@@ -19,7 +19,7 @@
         .pending-user, .query-item { border-bottom: 1px solid #e2e8f0; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
         .admin-only { display: none; }
-        .class-item { background: #f8fafc; margin: 10px 0; padding: 12px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .class-item, .video-item { background: #f8fafc; margin: 10px 0; padding: 12px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
     </style>
 </head>
@@ -32,7 +32,7 @@
             <a href="dashboard.html">Dashboard</a>
             <a href="live-classes.html">Live Classes</a>
             <a href="admin.html">Admin</a>
-         <a href="videos.html">Videos</a>
+            <a href="videos.html">Videos</a>
         </div>
         <div class="auth-buttons" id="adminNav"></div>
     </nav>
@@ -94,6 +94,49 @@
                 <h3>📋 Manage Classes</h3>
                 <div id="adminClassList">Loading...</div>
             </div>
+
+            <!-- ========== NEW VIDEO UPLOAD SECTION ========== -->
+            <div class="card">
+                <h3>🎬 Upload Recorded Video (YouTube or direct link)</h3>
+                <select id="videoCategory">
+                    <optgroup label="Class 5-10 (Science & Maths)">
+                        <option value="class5_science">Class 5 Science</option>
+                        <option value="class5_maths">Class 5 Maths</option>
+                        <option value="class6_science">Class 6 Science</option>
+                        <option value="class6_maths">Class 6 Maths</option>
+                        <option value="class7_science">Class 7 Science</option>
+                        <option value="class7_maths">Class 7 Maths</option>
+                        <option value="class8_science">Class 8 Science</option>
+                        <option value="class8_maths">Class 8 Maths</option>
+                        <option value="class9_science">Class 9 Science</option>
+                        <option value="class9_maths">Class 9 Maths</option>
+                        <option value="class10_science">Class 10 Science</option>
+                        <option value="class10_maths">Class 10 Maths</option>
+                    </optgroup>
+                    <optgroup label="Class 11 & 12 Science">
+                        <option value="class11_physics">Class 11 Physics</option>
+                        <option value="class11_chemistry">Class 11 Chemistry</option>
+                        <option value="class11_biology">Class 11 Biology</option>
+                        <option value="class12_physics">Class 12 Physics</option>
+                        <option value="class12_chemistry">Class 12 Chemistry</option>
+                        <option value="class12_biology">Class 12 Biology</option>
+                    </optgroup>
+                    <optgroup label="NEET Preparation">
+                        <option value="neet">NEET (Full Syllabus)</option>
+                    </optgroup>
+                </select>
+                <input type="text" id="videoTitle" placeholder="Video Title">
+                <input type="text" id="videoUrl" placeholder="Video URL (YouTube or direct link)">
+                <textarea id="videoDesc" rows="2" placeholder="Short description (optional)"></textarea>
+                <button id="uploadVideoBtn">Upload Video</button>
+            </div>
+
+            <div class="card">
+                <h3>📋 Manage Videos (Recorded Lectures)</h3>
+                <div id="adminVideoList">Loading...</div>
+            </div>
+            <!-- ========== END VIDEO SECTION ========== -->
+
             <button id="adminLogoutBtn" class="btn-outline" style="background:#dc2626;">Logout from Admin</button>
         </div>
     </div>
@@ -123,6 +166,7 @@
             loadPendingUsers();
             loadQueries();
             loadAdminClasses();
+            loadAdminVideos();   // <-- new
         }
 
         function hideAdminPanel() {
@@ -148,7 +192,7 @@
             hideAdminPanel();
         });
 
-        // Complete loadPendingUsers with event listeners
+        // ========== EXISTING FUNCTIONS (unchanged) ==========
         async function loadPendingUsers() {
             const q = query(collection(db, "users"), where("membershipStatus", "==", "pending"));
             onSnapshot(q, (snap) => {
@@ -175,7 +219,6 @@
                 });
                 container.innerHTML = html;
                 
-                // Attach event listeners to the newly created buttons
                 document.querySelectorAll('.approveBtn').forEach(btn => {
                     btn.addEventListener('click', async () => {
                         await updateDoc(doc(db, "users", btn.dataset.uid), { membershipStatus: 'approved' });
@@ -191,7 +234,6 @@
             });
         }
 
-        // loadQueries is fine as is
         async function loadQueries() {
             const q = query(collection(db, "queries"), orderBy("timestamp", "desc"));
             onSnapshot(q, (snap) => {
@@ -212,7 +254,6 @@
             });
         }
 
-        // Helper function to prevent XSS (optional but recommended)
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -264,6 +305,50 @@
         }
 
         document.getElementById('uploadClassBtn').addEventListener('click', uploadClass);
+
+        // ========== NEW VIDEO FUNCTIONS ==========
+        async function uploadVideo() {
+            const category = document.getElementById('videoCategory').value;
+            const title = document.getElementById('videoTitle').value.trim();
+            const videoUrl = document.getElementById('videoUrl').value.trim();
+            const description = document.getElementById('videoDesc').value.trim();
+            if (!title || !videoUrl) {
+                alert("Please enter title and video URL");
+                return;
+            }
+            await addDoc(collection(db, "videos"), {
+                category, title, videoUrl, description,
+                createdAt: new Date().toISOString()
+            });
+            alert("Video uploaded successfully!");
+            document.getElementById('videoTitle').value = '';
+            document.getElementById('videoUrl').value = '';
+            document.getElementById('videoDesc').value = '';
+            loadAdminVideos();
+        }
+
+        async function loadAdminVideos() {
+            const snapshot = await getDocs(collection(db, "videos"));
+            let html = "";
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                html += `<div class="video-item">
+                            <div><strong>${data.title}</strong><br>${data.category} · ${data.description ? data.description.substring(0,60) : ''}</div>
+                            <button class="deleteVideoBtn" data-id="${docSnap.id}">Delete</button>
+                         </div>`;
+            });
+            document.getElementById('adminVideoList').innerHTML = html || "<p>No videos uploaded yet.</p>";
+            document.querySelectorAll('.deleteVideoBtn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (confirm("Delete this video?")) {
+                        await deleteDoc(doc(db, "videos", btn.dataset.id));
+                        loadAdminVideos();
+                    }
+                });
+            });
+        }
+
+        document.getElementById('uploadVideoBtn').addEventListener('click', uploadVideo);
         // initial state
         hideAdminPanel();
     </script>
