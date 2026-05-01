@@ -18,8 +18,9 @@
         button { background: #1e3a8a; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; margin-right: 8px; }
         .pending-user, .query-item { border-bottom: 1px solid #e2e8f0; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
-        .admin-only { display: none; }
         .class-item, .video-item { background: #f8fafc; margin: 10px 0; padding: 12px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .quiz-question { background: #f1f5f9; padding: 12px; border-radius: 16px; margin: 10px 0; }
+        .quiz-question input, .quiz-question select { margin: 5px 0; }
         @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
     </style>
 </head>
@@ -47,6 +48,7 @@
         </div>
 
         <div id="adminContent" style="display:none;">
+            <!-- Existing cards -->
             <div class="card">
                 <h3>📝 Pending Membership Approvals</h3>
                 <div id="pendingUsersList">Loading...</div>
@@ -95,49 +97,73 @@
                 <div id="adminClassList">Loading...</div>
             </div>
 
-            <!-- ========== NEW VIDEO UPLOAD SECTION ========== -->
+            <!-- NEW: VIDEO UPLOAD (already present) -->
             <div class="card">
-                <h3>🎬 Upload Recorded Video (YouTube or direct link)</h3>
+                <h3>🎬 Upload Recorded Video</h3>
                 <select id="videoCategory">
                     <optgroup label="Class 5-10 (Science & Maths)">
-                        <option value="class5_science">Class 5 Science</option>
-                        <option value="class5_maths">Class 5 Maths</option>
-                        <option value="class6_science">Class 6 Science</option>
-                        <option value="class6_maths">Class 6 Maths</option>
-                        <option value="class7_science">Class 7 Science</option>
-                        <option value="class7_maths">Class 7 Maths</option>
-                        <option value="class8_science">Class 8 Science</option>
-                        <option value="class8_maths">Class 8 Maths</option>
-                        <option value="class9_science">Class 9 Science</option>
-                        <option value="class9_maths">Class 9 Maths</option>
-                        <option value="class10_science">Class 10 Science</option>
-                        <option value="class10_maths">Class 10 Maths</option>
+                        <option value="class5_science">Class 5 Science</option><option value="class5_maths">Class 5 Maths</option>
+                        <option value="class6_science">Class 6 Science</option><option value="class6_maths">Class 6 Maths</option>
+                        <option value="class7_science">Class 7 Science</option><option value="class7_maths">Class 7 Maths</option>
+                        <option value="class8_science">Class 8 Science</option><option value="class8_maths">Class 8 Maths</option>
+                        <option value="class9_science">Class 9 Science</option><option value="class9_maths">Class 9 Maths</option>
+                        <option value="class10_science">Class 10 Science</option><option value="class10_maths">Class 10 Maths</option>
                     </optgroup>
                     <optgroup label="Class 11 & 12 Science">
-                        <option value="class11_physics">Class 11 Physics</option>
-                        <option value="class11_chemistry">Class 11 Chemistry</option>
-                        <option value="class11_biology">Class 11 Biology</option>
-                        <option value="class12_physics">Class 12 Physics</option>
-                        <option value="class12_chemistry">Class 12 Chemistry</option>
-                        <option value="class12_biology">Class 12 Biology</option>
+                        <option value="class11_physics">Class 11 Physics</option><option value="class11_chemistry">Class 11 Chemistry</option>
+                        <option value="class11_biology">Class 11 Biology</option><option value="class12_physics">Class 12 Physics</option>
+                        <option value="class12_chemistry">Class 12 Chemistry</option><option value="class12_biology">Class 12 Biology</option>
                     </optgroup>
-                    <optgroup label="NEET Preparation">
-                        <option value="neet">NEET (Full Syllabus)</option>
+                    <optgroup label="NEET">
+                        <option value="neet">NEET Prep</option>
                     </optgroup>
                 </select>
                 <input type="text" id="videoTitle" placeholder="Video Title">
                 <input type="text" id="videoUrl" placeholder="Video URL (YouTube or direct link)">
-                <textarea id="videoDesc" rows="2" placeholder="Short description (optional)"></textarea>
+                <textarea id="videoDesc" rows="2" placeholder="Short description"></textarea>
                 <button id="uploadVideoBtn">Upload Video</button>
             </div>
-
             <div class="card">
-                <h3>📋 Manage Videos (Recorded Lectures)</h3>
+                <h3>📋 Manage Videos</h3>
                 <div id="adminVideoList">Loading...</div>
             </div>
-            <!-- ========== END VIDEO SECTION ========== -->
 
-            <button id="adminLogoutBtn" class="btn-outline" style="background:#dc2626;">Logout from Admin</button>
+            <!-- ========== NEW FEATURES ========== -->
+            <!-- PDF Notes Upload -->
+            <div class="card">
+                <h3>📄 Upload PDF Notes (for a video)</h3>
+                <select id="pdfVideoSelect"></select>
+                <input type="text" id="pdfTitle" placeholder="PDF Title">
+                <input type="url" id="pdfUrl" placeholder="PDF URL (Google Drive direct link)">
+                <button id="uploadPdfBtn">Attach PDF</button>
+                <div id="pdfList"></div>
+            </div>
+
+            <!-- Quiz Creation -->
+            <div class="card">
+                <h3>📝 Create Quiz for a Video</h3>
+                <select id="quizVideoSelect"></select>
+                <div id="quizQuestions"></div>
+                <button id="addQuestionBtn">+ Add Question</button>
+                <button id="saveQuizBtn">Save Quiz</button>
+            </div>
+
+            <!-- Send Notification -->
+            <div class="card">
+                <h3>🔔 Send Notification to Students</h3>
+                <input type="text" id="notifyTitle" placeholder="Title (e.g., New Video Added)">
+                <textarea id="notifyMessage" rows="2" placeholder="Message"></textarea>
+                <select id="notifyPlan">
+                    <option value="all">All Students</option>
+                    <option value="class5_10">Class 5-10 Plan</option>
+                    <option value="class11_12">Class 11-12 Plan</option>
+                    <option value="neet">NEET Plan</option>
+                </select>
+                <button id="sendNotificationBtn">Send Notification</button>
+            </div>
+            <!-- ================================= -->
+
+            <button id="adminLogoutBtn" style="background:#dc2626;">Logout from Admin</button>
         </div>
     </div>
 
@@ -145,7 +171,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-        import { getFirestore, collection, doc, getDocs, updateDoc, addDoc, deleteDoc, query, where, orderBy, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDocs, updateDoc, addDoc, deleteDoc, query, where, orderBy, onSnapshot, Timestamp, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCEDiAXK2lrXQI_RQMSMC7MlueyNBjKUAQ",
@@ -166,7 +192,9 @@
             loadPendingUsers();
             loadQueries();
             loadAdminClasses();
-            loadAdminVideos();   // <-- new
+            loadAdminVideos();
+            loadVideoSelects();           // for PDF & quiz dropdowns
+            attachPdfVideoListener();     // load PDF list when video selected
         }
 
         function hideAdminPanel() {
@@ -197,10 +225,7 @@
             const q = query(collection(db, "users"), where("membershipStatus", "==", "pending"));
             onSnapshot(q, (snap) => {
                 const container = document.getElementById('pendingUsersList');
-                if (snap.empty) { 
-                    container.innerHTML = "<p>No pending approvals</p>"; 
-                    return; 
-                }
+                if (snap.empty) { container.innerHTML = "<p>No pending approvals</p>"; return; }
                 let html = "";
                 snap.forEach(docSnap => {
                     const data = docSnap.data();
@@ -209,7 +234,7 @@
                         'class11_12': 'Class 11-12 Science (₹1000/mo)',
                         'neet': 'NEET Prep (₹2000/mo)'
                     }[data.selectedPlan] || data.selectedPlan || 'No plan selected';
-                    html += `<div class="pending-user" data-id="${docSnap.id}">
+                    html += `<div class="pending-user">
                                 <div><strong>${data.email}</strong><br>Plan: ${planDisplay}<br>TxID: ${data.transactionId || 'N/A'}</div>
                                 <div>
                                     <button class="approveBtn" data-uid="${docSnap.id}">Approve</button>
@@ -218,7 +243,6 @@
                              </div>`;
                 });
                 container.innerHTML = html;
-                
                 document.querySelectorAll('.approveBtn').forEach(btn => {
                     btn.addEventListener('click', async () => {
                         await updateDoc(doc(db, "users", btn.dataset.uid), { membershipStatus: 'approved' });
@@ -238,10 +262,7 @@
             const q = query(collection(db, "queries"), orderBy("timestamp", "desc"));
             onSnapshot(q, (snap) => {
                 const container = document.getElementById('queriesList');
-                if (snap.empty) { 
-                    container.innerHTML = "<p>No queries yet.</p>"; 
-                    return; 
-                }
+                if (snap.empty) { container.innerHTML = "<p>No queries yet.</p>"; return; }
                 let html = "";
                 snap.forEach(docSnap => {
                     const data = docSnap.data();
@@ -256,12 +277,7 @@
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
+            return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
         }
 
         async function uploadClass() {
@@ -270,13 +286,8 @@
             const dateTime = document.getElementById('classDateTime').value;
             const zoomLink = document.getElementById('zoomLink').value.trim();
             const zoomPassword = document.getElementById('zoomPassword').value.trim();
-            if (!title || !zoomLink || !dateTime) {
-                alert("Fill Title, Date/Time and Zoom Link");
-                return;
-            }
-            await addDoc(collection(db, "classes"), {
-                category, title, dateTime, zoomLink, zoomPassword, createdAt: new Date().toISOString()
-            });
+            if (!title || !zoomLink || !dateTime) { alert("Fill Title, Date/Time and Zoom Link"); return; }
+            await addDoc(collection(db, "classes"), { category, title, dateTime, zoomLink, zoomPassword, createdAt: new Date().toISOString() });
             alert("Class uploaded!");
             document.getElementById('classTitle').value = '';
             document.getElementById('classDateTime').value = '';
@@ -290,37 +301,23 @@
             let html = "";
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
-                html += `<div class="class-item">
-                            <div><strong>${data.title}</strong><br>${data.category} · ${new Date(data.dateTime).toLocaleString()}</div>
-                            <button class="deleteClassBtn" data-id="${docSnap.id}">Delete</button>
-                         </div>`;
+                html += `<div class="class-item"><div><strong>${data.title}</strong><br>${data.category} · ${new Date(data.dateTime).toLocaleString()}</div><button class="deleteClassBtn" data-id="${docSnap.id}">Delete</button></div>`;
             });
             document.getElementById('adminClassList').innerHTML = html || "<p>No classes uploaded.</p>";
-            document.querySelectorAll('.deleteClassBtn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    await deleteDoc(doc(db, "classes", btn.dataset.id));
-                    loadAdminClasses();
-                });
-            });
+            document.querySelectorAll('.deleteClassBtn').forEach(btn => btn.addEventListener('click', async () => { await deleteDoc(doc(db, "classes", btn.dataset.id)); loadAdminClasses(); }));
         }
 
         document.getElementById('uploadClassBtn').addEventListener('click', uploadClass);
 
-        // ========== NEW VIDEO FUNCTIONS ==========
+        // Video upload (existing)
         async function uploadVideo() {
             const category = document.getElementById('videoCategory').value;
             const title = document.getElementById('videoTitle').value.trim();
             const videoUrl = document.getElementById('videoUrl').value.trim();
             const description = document.getElementById('videoDesc').value.trim();
-            if (!title || !videoUrl) {
-                alert("Please enter title and video URL");
-                return;
-            }
-            await addDoc(collection(db, "videos"), {
-                category, title, videoUrl, description,
-                createdAt: new Date().toISOString()
-            });
-            alert("Video uploaded successfully!");
+            if (!title || !videoUrl) { alert("Please enter title and video URL"); return; }
+            await addDoc(collection(db, "videos"), { category, title, videoUrl, description, createdAt: new Date().toISOString() });
+            alert("Video uploaded!");
             document.getElementById('videoTitle').value = '';
             document.getElementById('videoUrl').value = '';
             document.getElementById('videoDesc').value = '';
@@ -332,25 +329,25 @@
             let html = "";
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
-                html += `<div class="video-item">
-                            <div><strong>${data.title}</strong><br>${data.category} · ${data.description ? data.description.substring(0,60) : ''}</div>
-                            <button class="deleteVideoBtn" data-id="${docSnap.id}">Delete</button>
-                         </div>`;
+                html += `<div class="video-item"><div><strong>${data.title}</strong><br>${data.category}</div><button class="deleteVideoBtn" data-id="${docSnap.id}">Delete</button></div>`;
             });
             document.getElementById('adminVideoList').innerHTML = html || "<p>No videos uploaded yet.</p>";
-            document.querySelectorAll('.deleteVideoBtn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    if (confirm("Delete this video?")) {
-                        await deleteDoc(doc(db, "videos", btn.dataset.id));
-                        loadAdminVideos();
-                    }
-                });
-            });
+            document.querySelectorAll('.deleteVideoBtn').forEach(btn => btn.addEventListener('click', async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "videos", btn.dataset.id)); loadAdminVideos(); } }));
         }
 
         document.getElementById('uploadVideoBtn').addEventListener('click', uploadVideo);
-        // initial state
-        hideAdminPanel();
-    </script>
-</body>
-</html>
+
+        // ========== NEW FEATURE FUNCTIONS ==========
+        // Populate video selects
+        async function loadVideoSelects() {
+            const snap = await getDocs(collection(db, "videos"));
+            const options = [];
+            snap.forEach(d => options.push({id: d.id, title: d.data().title}));
+            const selects = ['pdfVideoSelect', 'quizVideoSelect'];
+            selects.forEach(id => {
+                const sel = document.getElementById(id);
+                if (sel) {
+                    sel.innerHTML = '<option value="">Select Video</option>';
+                    options.forEach(opt => { sel.innerHTML += `<option value="${opt.id}">${opt.title}</option>`; });
+                }
+     
