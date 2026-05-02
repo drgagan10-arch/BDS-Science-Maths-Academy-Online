@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BDS Academy | Login & Membership</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f0f4f8; }
@@ -14,289 +16,141 @@
         .nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
         .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
         .card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; text-align: center; }
-        .qr-img { max-width: 250px; margin: 1rem auto; display: block; border-radius: 16px; border: 1px solid #ddd; }
         input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 16px; border: 1px solid #cbd5e1; }
         button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: bold; margin: 5px; }
         .google-btn { background: #db4437; }
         .toggle-btn { background: #64748b; }
-        footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
-        .auth-buttons { display: flex; gap: 12px; align-items: center; }
-        .user-email { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 30px; }
-        .error { color: #e11d48; margin-top: 10px; }
-        .success { color: #16a34a; }
-        .plan-box { background: #f8fafc; padding: 12px; border-radius: 16px; margin: 15px 0; text-align: left; }
-        @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
+        .error { color: #e11d48; }
     </style>
 </head>
+
 <body>
-    <nav>
-        <div class="logo">📚 BDS Academy</div>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="membership.html">Membership</a>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="live-classes.html">Live Classes</a>
-            <a href="admin.html">Admin</a>
-         <a href="videos.html">Videos</a>
+
+<nav>
+    <div class="logo">📚 BDS Academy</div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="membership.html">Membership</a>
+    </div>
+    <div id="authButtons"></div>
+</nav>
+
+<div class="container">
+
+    <!-- LOGIN CARD -->
+    <div id="loginSignupCard" class="card">
+        <h2 id="formTitle">Student Login</h2>
+
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+
+        <button id="submitBtn">Login</button>
+        <button id="toggleBtn" class="toggle-btn">Create Account</button>
+
+        <br>
+
+        <button id="googleBtn" class="google-btn">
+            <i class="fab fa-google"></i> Sign in with Google
+        </button>
+
+        <!-- ✅ NEW BUTTON -->
+        <button onclick="showPhoneLogin()">Login with Mobile</button>
+
+        <div id="authError" class="error"></div>
+
+        <!-- ✅ PHONE LOGIN (HIDDEN) -->
+        <div id="phone-auth" style="display:none; margin-top:20px;">
+            <input id="phoneNumber" placeholder="+91XXXXXXXXXX">
+            <div id="recaptcha-container"></div>
+            <button onclick="sendOTP()">Send OTP</button>
+
+            <input id="otp" placeholder="Enter OTP">
+            <button onclick="verifyOTP()">Verify OTP</button>
         </div>
-        <div class="auth-buttons" id="authButtons"></div>
-    </nav>
 
-    <div class="container">
-        <!-- Login/Signup Card -->
-        <div id="loginSignupCard" class="card">
-            <h2 id="formTitle">Student Login</h2>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password">
-            <div>
-                <button id="submitBtn">Login</button>
-                <button id="toggleBtn" class="toggle-btn">Create Account</button>
-            </div>
-            <button id="googleBtn" class="google-btn"><i class="fab fa-google"></i> Sign in with Google</button>
-            <div id="authError" class="error"></div>
-        </div>
-          <body>
-
-  <!-- Existing login form -->
-  <div>
-    <h2>Login</h2>
-    <!-- your current login inputs -->
-  </div>
-
-  <!-- 🔽 Add Phone Auth here -->
-  <div id="phone-auth">
-    <h3>Login with Phone</h3>
-
-    <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Send OTP</button>
-
-    <br><br>
-
-    <input type="text" id="otp" placeholder="Enter OTP">
-    <button onclick="verifyOTP()">Verify OTP</button>
-  </div>
-
-</body>
-        <!-- Membership Card (shown after login) -->
-        <div id="membershipCard" class="card" style="display:none;">
-            <h2>✨ Choose Your Plan & Pay</h2>
-            <div class="plan-box">
-                <label><strong>Select Membership Plan:</strong></label>
-                <select id="planSelect">
-                    <option value="class5_10">Classes 5-10 (Science & Maths) – ₹500 / month</option>
-                    <option value="class11_12">Classes 11 & 12 Science (Physics, Chemistry, Biology) – ₹1000 / month</option>
-                    <option value="neet">NEET Preparation (Full syllabus) – ₹2000 / month</option>
-                </select>
-            </div>
-            <p>Scan QR code and pay the amount for your selected plan. Then upload transaction ID.</p>
-            <img src="images/qr.jpeg" class="qr-img" alt="Payment QR" onerror="this.src='https://placehold.co/250x250?text=QR+Missing+Place+images/qr.jpeg'">
-            <div>
-                <input type="text" id="transactionId" placeholder="Your Transaction ID">
-                <button id="submitTransactionBtn">Submit for Approval</button>
-            </div>
-            <div id="membershipStatusMsg"></div>
-        </div>
     </div>
 
-    <footer>© 2025 Baba Deep Singh Science & Maths Academy</footer>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+<script type="module">
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCEDiAXK2lrXQI_RQMSMC7MlueyNBjKUAQ",
-            authDomain: "bds-onlinr-coaching.firebaseapp.com",
-            projectId: "bds-onlinr-coaching",
-            storageBucket: "bds-onlinr-coaching.firebasestorage.app",
-            messagingSenderId: "904398440973",
-            appId: "1:904398440973:web:cc42490d681d305641e344"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
-        let currentUser = null;
-        let isLogin = true;
-
-        const authDiv = document.getElementById('authButtons');
-        const loginCard = document.getElementById('loginSignupCard');
-        const membershipCard = document.getElementById('membershipCard');
-        const formTitle = document.getElementById('formTitle');
-        const submitBtn = document.getElementById('submitBtn');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const googleBtn = document.getElementById('googleBtn');
-        const authError = document.getElementById('authError');
-
-        function updateNavbar(user) {
-            if (user) {
-                authDiv.innerHTML = `<span class="user-email">${user.email}</span> <button id="logoutNavBtn">Logout</button>`;
-                document.getElementById('logoutNavBtn').addEventListener('click', () => signOut(auth));
-            } else {
-                authDiv.innerHTML = `<button id="loginNavBtn">Login / Sign up</button>`;
-                document.getElementById('loginNavBtn').addEventListener('click', () => {
-                    loginCard.style.display = 'block';
-                    membershipCard.style.display = 'none';
-                });
-            }
-        }
-
-        function showCorrectCard(user) {
-            if (user) {
-                loginCard.style.display = 'none';
-                membershipCard.style.display = 'block';
-                loadUserMembershipStatus(user.uid);
-            } else {
-                loginCard.style.display = 'block';
-                membershipCard.style.display = 'none';
-            }
-        }
-
-        async function loadUserMembershipStatus(uid) {
-            const userRef = doc(db, "users", uid);
-            const snap = await getDoc(userRef);
-            let status = 'pending';
-            let plan = '';
-            if (snap.exists()) {
-                status = snap.data().membershipStatus || 'pending';
-                plan = snap.data().selectedPlan || '';
-            } else {
-                await setDoc(userRef, { email: currentUser.email, membershipStatus: 'pending', transactionId: null, selectedPlan: '' });
-            }
-            const msgDiv = document.getElementById('membershipStatusMsg');
-            if (status === 'approved') {
-                msgDiv.innerHTML = `<p class="success">✅ Your membership (${plan}) is ACTIVE. You can access live classes.</p>`;
-            } else if (status === 'rejected') {
-                msgDiv.innerHTML = '<p class="error">❌ Your membership was rejected. Please contact support.</p>';
-            } else {
-                msgDiv.innerHTML = '<p style="color:#f59e0b;">⏳ Your membership is pending approval. Admin will review your transaction ID and plan.</p>';
-            }
-        }
-
-        toggleBtn.addEventListener('click', () => {
-            isLogin = !isLogin;
-            formTitle.innerText = isLogin ? "Student Login" : "Student Sign Up";
-            submitBtn.innerText = isLogin ? "Login" : "Sign Up";
-        });
-
-        submitBtn.addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            if (!email || !password) {
-                authError.innerText = "Please enter email and password";
-                return;
-            }
-            authError.innerText = "";
-            try {
-                if (isLogin) {
-                    await signInWithEmailAndPassword(auth, email, password);
-                } else {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                }
-            } catch (err) {
-                authError.innerText = err.message;
-            }
-        });
-
-        googleBtn.addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (err) {
-                authError.innerText = err.message;
-            }
-        });
-
-        document.getElementById('submitTransactionBtn').addEventListener('click', async () => {
-            if (!currentUser) {
-                alert("Please login first");
-                return;
-            }
-            const tid = document.getElementById('transactionId').value.trim();
-            const planSelect = document.getElementById('planSelect');
-            const selectedPlan = planSelect.value;
-            if (!tid) {
-                alert("Enter transaction ID");
-                return;
-            }
-            const userRef = doc(db, "users", currentUser.uid);
-            await updateDoc(userRef, { 
-                transactionId: tid, 
-                membershipStatus: 'pending',
-                selectedPlan: selectedPlan
-            });
-            alert("Transaction ID submitted! Admin will approve soon.");
-            location.reload();
-        });
-
-        onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            updateNavbar(user);
-            showCorrectCard(user);
-            if (user) {
-                const userRef = doc(db, "users", user.uid);
-                const snap = await getDoc(userRef);
-                if (!snap.exists()) {
-                    await setDoc(userRef, { email: user.email, membershipStatus: 'pending', transactionId: null, selectedPlan: '' });
-                }
-                await loadUserMembershipStatus(user.uid);
-            }
-        });
-    </script>
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
-  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-
-  const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "bds-onlinr-coaching.firebaseapp.com",
     projectId: "bds-onlinr-coaching",
-    storageBucket: "bds-onlinr-coaching.firebasestorage.app",
-    messagingSenderId: "904398440973",
-    appId: "1:904398440973:web:cc42490d681d305641e344",
-    measurementId: "G-2T5M0J7S2L"
-  };
+    appId: "1:904398440973:web:cc42490d681d305641e344"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-  // 🔥 ADD THIS
-  const auth = getAuth(app);
+let isLogin = true;
 
-  window.recaptchaVerifier = new RecaptchaVerifier(
-    'recaptcha-container',
-    { size: 'normal' },
-    auth
-  );
+// Toggle login/signup
+toggleBtn.onclick = () => {
+    isLogin = !isLogin;
+    formTitle.innerText = isLogin ? "Login" : "Sign Up";
+};
 
-  window.sendOTP = function () {
-    const phoneNumber = document.getElementById("phoneNumber").value;
+// Email login
+submitBtn.onclick = async () => {
+    const email = email.value;
+    const pass = password.value;
 
-    signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-      .then((confirmationResult) => {
-        window.confirmationResult = confirmationResult;
-        alert("OTP sent!");
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-  };
+    try {
+        if (isLogin) {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } else {
+            await createUserWithEmailAndPassword(auth, email, pass);
+        }
+        alert("Success!");
+    } catch (e) {
+        authError.innerText = e.message;
+    }
+};
 
-  window.verifyOTP = function () {
+// Google login
+googleBtn.onclick = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+};
+
+// ✅ SHOW PHONE LOGIN
+window.showPhoneLogin = () => {
+    document.getElementById("phone-auth").style.display = "block";
+
+    window.recaptchaVerifier = new RecaptchaVerifier(
+        'recaptcha-container',
+        { size: 'normal' },
+        auth
+    );
+};
+
+// SEND OTP
+window.sendOTP = () => {
+    const phone = document.getElementById("phoneNumber").value;
+
+    signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
+        .then(res => {
+            window.confirmationResult = res;
+            alert("OTP Sent!");
+        })
+        .catch(err => alert(err.message));
+};
+
+// VERIFY OTP
+window.verifyOTP = () => {
     const code = document.getElementById("otp").value;
 
     window.confirmationResult.confirm(code)
-      .then((result) => {
-        alert("Phone verified!");
-        console.log(result.user);
-      })
-      .catch(() => {
-        alert("Invalid OTP");
-      });
-  };
+        .then(() => alert("Phone Verified ✅"))
+        .catch(() => alert("Invalid OTP"));
+};
+
 </script>
+
 </body>
 </html>
