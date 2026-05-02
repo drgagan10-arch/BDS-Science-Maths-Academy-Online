@@ -21,6 +21,17 @@ button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; bo
 .google-btn { background: #db4437; }
 .toggle-btn { background: #64748b; }
 .error { color: #e11d48; margin-top: 10px; }
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+    }
+    .nav-links.active {
+        display: flex;
+    }
+}
+  
 </style>
 </head>
 
@@ -28,7 +39,7 @@ button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; bo
 
 <nav>
 <div class="logo">📚 BDS Academy</div>
-
+<button id="menuToggle" style="font-size:20px; background:none; border:none; color:white;">☰</button>
 <div class="nav-links">
 <a href="index.html">Home</a>
 <a href="membership.html">Membership</a>
