@@ -16,22 +16,18 @@ nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; just
 .nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
 .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
 .card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; text-align: center; }
+.qr-img { max-width: 250px; margin: 1rem auto; display: block; border-radius: 16px; border: 1px solid #ddd; }
 input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 16px; border: 1px solid #cbd5e1; }
 button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: bold; margin: 5px; }
 .google-btn { background: #db4437; }
 .toggle-btn { background: #64748b; }
+footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
+.auth-buttons { display: flex; gap: 12px; align-items: center; }
+.user-email { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 30px; }
 .error { color: #e11d48; margin-top: 10px; }
-@media (max-width: 768px) {
-    .nav-links {
-        display: none;
-        width: 100%;
-        flex-direction: column;
-    }
-    .nav-links.active {
-        display: flex;
-    }
-}
-  
+.success { color: #16a34a; }
+.plan-box { background: #f8fafc; padding: 12px; border-radius: 16px; margin: 15px 0; text-align: left; }
+@media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
 </style>
 </head>
 
@@ -39,8 +35,8 @@ button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; bo
 
 <nav>
 <div class="logo">📚 BDS Academy</div>
-<button id="menuToggle" style="font-size:20px; background:none; border:none; color:white;">☰</button>
-<div class="nav-links" id="navLinks">
+
+<div class="nav-links">
 <a href="index.html">Home</a>
 <a href="membership.html">Membership</a>
 <a href="dashboard.html">Dashboard</a>
@@ -49,11 +45,12 @@ button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; bo
 <a href="videos.html">Videos</a>
 </div>
 
-<div id="authButtons"></div>
+<div class="auth-buttons" id="authButtons"></div>
 </nav>
 
 <div class="container">
 
+<!-- Login/Signup Card -->
 <div id="loginSignupCard" class="card">
 <h2 id="formTitle">Student Login</h2>
 
@@ -69,97 +66,89 @@ button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; bo
 <i class="fab fa-google"></i> Sign in with Google
 </button>
 
-<button onclick="showPhoneLogin()">Login with Mobile</button>
-
 <div id="authError" class="error"></div>
+</div>
 
-<div id="phone-auth" style="display:none;">
-<h3>Login with Phone</h3>
+<body>
 
-<input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
-<div id="recaptcha-container"></div>
-<button onclick="sendOTP()">Send OTP</button>
+<!-- Existing login form -->
+<div>
+<h2>Login</h2>
+<!-- your current login inputs -->
+</div>
 
-<br><br>
+<!-- Membership Card (shown after login) -->
+<div id="membershipCard" class="card" style="display:none;">
+<h2>✨ Choose Your Plan & Pay</h2>
 
-<input type="text" id="otp" placeholder="Enter OTP">
-<button onclick="verifyOTP()">Verify OTP</button>
+<div class="plan-box">
+<label><strong>Select Membership Plan:</strong></label>
+
+<select id="planSelect">
+<option value="class5_10">Classes 5-10 (Science & Maths) – ₹500 / month</option>
+<option value="class11_12">Classes 11 & 12 Science (Physics, Chemistry, Biology) – ₹1000 / month</option>
+<option value="neet">NEET Preparation (Full syllabus) – ₹2000 / month</option>
+</select>
+</div>
+
+<p>Scan QR code and pay the amount for your selected plan. Then upload transaction ID.</p>
+
+<img src="images/qr.jpeg" class="qr-img" alt="Payment QR" onerror="this.src='https://placehold.co/250x250?text=QR+Missing+Place+images/qr.jpeg'">
+
+<div>
+<input type="text" id="transactionId" placeholder="Your Transaction ID">
+<button id="submitTransactionBtn">Submit for Approval</button>
+</div>
+
+<div id="membershipStatusMsg"></div>
 </div>
 
 </div>
 
-</div>
+<footer>© 2025 Baba Deep Singh Science & Maths Academy</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyCEDiAXK2lrXQI_RQMSMC7MlueyNBjKUAQ",
 authDomain: "bds-onlinr-coaching.firebaseapp.com",
 projectId: "bds-onlinr-coaching",
+storageBucket: "bds-onlinr-coaching.firebasestorage.app",
+messagingSenderId: "904398440973",
 appId: "1:904398440973:web:cc42490d681d305641e344"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
+let currentUser = null;
 let isLogin = true;
 
-toggleBtn.onclick = () => {
-isLogin = !isLogin;
-formTitle.innerText = isLogin ? "Login" : "Sign Up";
-submitBtn.innerText = isLogin ? "Login" : "Sign Up";
-};
+const authDiv = document.getElementById('authButtons');
+const loginCard = document.getElementById('loginSignupCard');
+const membershipCard = document.getElementById('membershipCard');
+const formTitle = document.getElementById('formTitle');
+const submitBtn = document.getElementById('submitBtn');
+const toggleBtn = document.getElementById('toggleBtn');
+const googleBtn = document.getElementById('googleBtn');
+const authError = document.getElementById('authError');
 
-submitBtn.onclick = async () => {
-try {
-if (isLogin) {
-await signInWithEmailAndPassword(auth, email.value, password.value);
+function updateNavbar(user) {
+if (user) {
+authDiv.innerHTML = <span class="user-email">${user.email}</span> <button id="logoutNavBtn">Logout</button>;
+document.getElementById('logoutNavBtn').addEventListener('click', () => signOut(auth));
 } else {
-await createUserWithEmailAndPassword(auth, email.value, password.value);
+authDiv.innerHTML = <button id="loginNavBtn">Login / Sign up</button>;
+document.getElementById('loginNavBtn').addEventListener('click', () => {
+loginCard.style.display = 'block';
+membershipCard.style.display = 'none';
+});
 }
-alert("Success!");
-} catch (e) {
-authError.innerText = e.message;
 }
-};
-
-googleBtn.onclick = async () => {
-try {
-await signInWithPopup(auth, new GoogleAuthProvider());
-} catch (e) {
-authError.innerText = e.message;
-}
-};
-
-window.showPhoneLogin = () => {
-document.getElementById("phone-auth").style.display = "block";
-
-window.recaptchaVerifier = new RecaptchaVerifier(
-"recaptcha-container",
-{ size: "normal" },
-auth
-);
-};
-
-window.sendOTP = () => {
-signInWithPhoneNumber(auth, phoneNumber.value, window.recaptchaVerifier)
-.then(res => {
-window.confirmationResult = res;
-alert("OTP sent!");
-})
-.catch(e => alert(e.message));
-};
-
-window.verifyOTP = () => {
-window.confirmationResult.confirm(otp.value)
-.then(() => alert("Phone verified"))
-.catch(() => alert("Invalid OTP"));
-};
-document.getElementById("menuToggle").onclick = () => {
-    document.getElementById("navLinks").classList.toggle("active");
-};
 </script>
 
 </body>
