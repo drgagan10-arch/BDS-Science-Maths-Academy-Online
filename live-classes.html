@@ -15,14 +15,19 @@
         .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
         .card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; }
         .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
-        .class-card { background: white; border: 1px solid #e2e8f0; border-radius: 20px; padding: 1rem; }
+        .class-card { background: white; border: 1px solid #e2e8f0; border-radius: 20px; padding: 1rem; transition: 0.2s; }
+        .class-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .class-category { background: #e0e7ff; padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; display: inline-block; margin-bottom: 8px; }
-        button { background: #1e3a8a; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; margin-top: 10px; }
+        button { background: #1e3a8a; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        button:hover { background: #0f2b6d; }
         select { padding: 8px; border-radius: 20px; border: 1px solid #cbd5e1; margin: 10px 0; width: 100%; max-width: 300px; }
         footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
         .auth-buttons { display: flex; gap: 12px; align-items: center; }
         .user-email { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 30px; }
-        @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
+        @media (max-width: 768px) {
+            .nav-links a { display: inline-block; margin: 0.5rem; }
+            .class-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -34,7 +39,7 @@
             <a href="dashboard.html">Dashboard</a>
             <a href="live-classes.html">Live Classes</a>
             <a href="admin.html">Admin</a>
-         <a href="videos.html">Videos</a>
+            <a href="videos.html">Videos</a>
         </div>
         <div class="auth-buttons" id="authButtons"></div>
     </nav>
@@ -70,10 +75,9 @@
         const db = getFirestore(app);
 
         let currentUser = null;
-        let userPlan = null;
         let allowedCategories = [];
 
-        // Full category mapping for each plan
+        // Mapping from plan to category list
         const planCategories = {
             'class5_10': [
                 'class5_science', 'class5_maths',
@@ -113,13 +117,20 @@
                 const userSnap = await getDoc(doc(db, "users", user.uid));
                 if (userSnap.exists()) {
                     const data = userSnap.data();
-                    const status = data.membershipStatus;
-                    userPlan = data.selectedPlan;
-                    if (status !== 'approved' || !userPlan || !planCategories[userPlan]) {
-                        document.getElementById('classesList').innerHTML = '<p style="color:#e11d48;">❌ Membership required or plan not approved. Please purchase membership and get approval.</p>';
+                    const purchasedPlans = data.purchasedPlans || [];
+                    if (purchasedPlans.length === 0) {
+                        document.getElementById('classesList').innerHTML = '<p style="color:#e11d48;">❌ No active membership plans. Please purchase a plan.</p>';
                         return;
                     }
-                    allowedCategories = planCategories[userPlan];
+                    // Merge categories from all purchased plans
+                    allowedCategories = [];
+                    purchasedPlans.forEach(plan => {
+                        if (planCategories[plan]) {
+                            allowedCategories.push(...planCategories[plan]);
+                        }
+                    });
+                    // Remove duplicates
+                    allowedCategories = [...new Set(allowedCategories)];
                     populateCategoryFilter();
                     loadAllClasses();
                 } else {
@@ -136,6 +147,7 @@
 
         function populateCategoryFilter() {
             const filterSelect = document.getElementById('categoryFilter');
+            if (!filterSelect) return;
             filterSelect.innerHTML = '<option value="all">All (within your plan)</option>';
             allowedCategories.forEach(cat => {
                 const displayName = categoryNames[cat] || cat.replace('_', ' ').toUpperCase();
@@ -157,7 +169,7 @@
             
             const container = document.getElementById('classesList');
             if (classes.length === 0) {
-                container.innerHTML = '<p>No live classes available for your plan.</p>';
+                container.innerHTML = '<p>No live classes available for your plan. Check back later.</p>';
                 return;
             }
             let html = `<div class="class-grid">`;
@@ -166,9 +178,9 @@
                 html += `
                     <div class="class-card">
                         <span class="class-category">${catDisplay}</span>
-                        <h3>${cls.title}</h3>
+                        <h3>${escapeHtml(cls.title)}</h3>
                         <p><i class="fas fa-calendar"></i> ${new Date(cls.dateTime).toLocaleString()}</p>
-                        <button class="joinBtn" data-link="${cls.zoomLink}" data-pwd="${cls.zoomPassword || ''}">Join Live Class</button>
+                        <button class="joinBtn" data-link="${escapeHtml(cls.zoomLink)}" data-pwd="${escapeHtml(cls.zoomPassword || '')}">Join Live Class</button>
                     </div>
                 `;
             });
@@ -184,8 +196,18 @@
             });
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
         document.getElementById('categoryFilter').addEventListener('change', (e) => {
-            if (currentUser && userPlan) loadAllClasses(e.target.value);
+            if (currentUser && allowedCategories.length) loadAllClasses(e.target.value);
         });
     </script>
 </body>
