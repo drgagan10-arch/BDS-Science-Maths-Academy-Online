@@ -157,6 +157,9 @@ window.confirmationResult.confirm(otp.value)
 .then(() => alert("Phone verified"))
 .catch(() => alert("Invalid OTP"));
 };
+document.getElementById("menuToggle").onclick = () => {
+    document.getElementById("navLinks").classList.toggle("active");
+};
 </script>
 
 </body>
