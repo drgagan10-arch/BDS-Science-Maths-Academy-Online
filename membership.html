@@ -1,87 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BDS Academy | Login & Membership</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDS Academy | Login & Membership</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f0f4f8; }
-        nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: bold; }
-        .nav-links a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem; }
-        .nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
-        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; text-align: center; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 16px; border: 1px solid #cbd5e1; }
-        button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: bold; margin: 5px; }
-        .google-btn { background: #db4437; }
-        .toggle-btn { background: #64748b; }
-        .error { color: #e11d48; }
-    </style>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background: #f0f4f8; }
+nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
+.logo { font-size: 1.5rem; font-weight: bold; }
+.nav-links a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem; }
+.nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
+.container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+.card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; text-align: center; }
+input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 16px; border: 1px solid #cbd5e1; }
+button { background: #1e3a8a; color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: bold; margin: 5px; }
+.google-btn { background: #db4437; }
+.toggle-btn { background: #64748b; }
+.error { color: #e11d48; margin-top: 10px; }
+</style>
 </head>
 
 <body>
 
 <nav>
-    <div class="logo">📚 BDS Academy</div>
-    <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="membership.html">Membership</a>
-    </div>
-    <div id="authButtons"></div>
+<div class="logo">📚 BDS Academy</div>
+
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="membership.html">Membership</a>
+<a href="dashboard.html">Dashboard</a>
+<a href="live-classes.html">Live Classes</a>
+<a href="admin.html">Admin</a>
+<a href="videos.html">Videos</a>
+</div>
+
+<div id="authButtons"></div>
 </nav>
 
 <div class="container">
 
-    <!-- LOGIN CARD -->
-    <div id="loginSignupCard" class="card">
-        <h2 id="formTitle">Student Login</h2>
+<div id="loginSignupCard" class="card">
+<h2 id="formTitle">Student Login</h2>
 
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
 
-        <button id="submitBtn">Login</button>
-        <button id="toggleBtn" class="toggle-btn">Create Account</button>
+<div>
+<button id="submitBtn">Login</button>
+<button id="toggleBtn" class="toggle-btn">Create Account</button>
+</div>
 
-        <br>
+<button id="googleBtn" class="google-btn">
+<i class="fab fa-google"></i> Sign in with Google
+</button>
 
-        <button id="googleBtn" class="google-btn">
-            <i class="fab fa-google"></i> Sign in with Google
-        </button>
+<button onclick="showPhoneLogin()">Login with Mobile</button>
 
-        <!-- ✅ NEW BUTTON -->
-        <button onclick="showPhoneLogin()">Login with Mobile</button>
+<div id="authError" class="error"></div>
 
-        <div id="authError" class="error"></div>
+<div id="phone-auth" style="display:none;">
+<h3>Login with Phone</h3>
 
-        <!-- ✅ PHONE LOGIN (HIDDEN) -->
-        <div id="phone-auth" style="display:none; margin-top:20px;">
-            <input id="phoneNumber" placeholder="+91XXXXXXXXXX">
-            <div id="recaptcha-container"></div>
-            <button onclick="sendOTP()">Send OTP</button>
+<input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
+<div id="recaptcha-container"></div>
+<button onclick="sendOTP()">Send OTP</button>
 
-            <input id="otp" placeholder="Enter OTP">
-            <button onclick="verifyOTP()">Verify OTP</button>
-        </div>
+<br><br>
 
-    </div>
+<input type="text" id="otp" placeholder="Enter OTP">
+<button onclick="verifyOTP()">Verify OTP</button>
+</div>
+
+</div>
 
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCEDiAXK2lrXQI_RQMSMC7MlueyNBjKUAQ",
-    authDomain: "bds-onlinr-coaching.firebaseapp.com",
-    projectId: "bds-onlinr-coaching",
-    appId: "1:904398440973:web:cc42490d681d305641e344"
+apiKey: "AIzaSyCEDiAXK2lrXQI_RQMSMC7MlueyNBjKUAQ",
+authDomain: "bds-onlinr-coaching.firebaseapp.com",
+projectId: "bds-onlinr-coaching",
+appId: "1:904398440973:web:cc42490d681d305641e344"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -89,67 +95,57 @@ const auth = getAuth(app);
 
 let isLogin = true;
 
-// Toggle login/signup
 toggleBtn.onclick = () => {
-    isLogin = !isLogin;
-    formTitle.innerText = isLogin ? "Login" : "Sign Up";
+isLogin = !isLogin;
+formTitle.innerText = isLogin ? "Login" : "Sign Up";
+submitBtn.innerText = isLogin ? "Login" : "Sign Up";
 };
 
-// Email login
 submitBtn.onclick = async () => {
-    const email = email.value;
-    const pass = password.value;
-
-    try {
-        if (isLogin) {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } else {
-            await createUserWithEmailAndPassword(auth, email, pass);
-        }
-        alert("Success!");
-    } catch (e) {
-        authError.innerText = e.message;
-    }
+try {
+if (isLogin) {
+await signInWithEmailAndPassword(auth, email.value, password.value);
+} else {
+await createUserWithEmailAndPassword(auth, email.value, password.value);
+}
+alert("Success!");
+} catch (e) {
+authError.innerText = e.message;
+}
 };
 
-// Google login
 googleBtn.onclick = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+try {
+await signInWithPopup(auth, new GoogleAuthProvider());
+} catch (e) {
+authError.innerText = e.message;
+}
 };
 
-// ✅ SHOW PHONE LOGIN
 window.showPhoneLogin = () => {
-    document.getElementById("phone-auth").style.display = "block";
+document.getElementById("phone-auth").style.display = "block";
 
-    window.recaptchaVerifier = new RecaptchaVerifier(
-        'recaptcha-container',
-        { size: 'normal' },
-        auth
-    );
+window.recaptchaVerifier = new RecaptchaVerifier(
+"recaptcha-container",
+{ size: "normal" },
+auth
+);
 };
 
-// SEND OTP
 window.sendOTP = () => {
-    const phone = document.getElementById("phoneNumber").value;
-
-    signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
-        .then(res => {
-            window.confirmationResult = res;
-            alert("OTP Sent!");
-        })
-        .catch(err => alert(err.message));
+signInWithPhoneNumber(auth, phoneNumber.value, window.recaptchaVerifier)
+.then(res => {
+window.confirmationResult = res;
+alert("OTP sent!");
+})
+.catch(e => alert(e.message));
 };
 
-// VERIFY OTP
 window.verifyOTP = () => {
-    const code = document.getElementById("otp").value;
-
-    window.confirmationResult.confirm(code)
-        .then(() => alert("Phone Verified ✅"))
-        .catch(() => alert("Invalid OTP"));
+window.confirmationResult.confirm(otp.value)
+.then(() => alert("Phone verified"))
+.catch(() => alert("Invalid OTP"));
 };
-
 </script>
 
 </body>
