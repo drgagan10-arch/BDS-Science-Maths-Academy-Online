@@ -244,51 +244,59 @@
                 await loadUserMembershipStatus(user.uid);
             }
         });
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-
-const auth = getAuth();
-
-// Setup reCAPTCHA
-window.recaptchaVerifier = new RecaptchaVerifier(
-  'recaptcha-container',
-  {
-    size: 'normal',
-    callback: (response) => {
-      console.log("reCAPTCHA solved");
-    }
-  },
-  auth
-);
-
-// Send OTP
-window.sendOTP = function () {
-  const phoneNumber = document.getElementById("phoneNumber").value;
-
-  signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-    .then((confirmationResult) => {
-      window.confirmationResult = confirmationResult;
-      alert("OTP sent!");
-    })
-    .catch((error) => {
-      console.error(error);
-      alert(error.message);
-    });
-};
-
-// Verify OTP
-window.verifyOTP = function () {
-  const code = document.getElementById("otp").value;
-
-  window.confirmationResult.confirm(code)
-    .then((result) => {
-      const user = result.user;
-      alert("Phone verified! User ID: " + user.uid);
-    })
-    .catch((error) => {
-      alert("Invalid OTP");
-    });
-};
-        
     </script>
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
+  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "bds-onlinr-coaching.firebaseapp.com",
+    projectId: "bds-onlinr-coaching",
+    storageBucket: "bds-onlinr-coaching.firebasestorage.app",
+    messagingSenderId: "904398440973",
+    appId: "1:904398440973:web:cc42490d681d305641e344",
+    measurementId: "G-2T5M0J7S2L"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+  // 🔥 ADD THIS
+  const auth = getAuth(app);
+
+  window.recaptchaVerifier = new RecaptchaVerifier(
+    'recaptcha-container',
+    { size: 'normal' },
+    auth
+  );
+
+  window.sendOTP = function () {
+    const phoneNumber = document.getElementById("phoneNumber").value;
+
+    signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
+      .then((confirmationResult) => {
+        window.confirmationResult = confirmationResult;
+        alert("OTP sent!");
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  window.verifyOTP = function () {
+    const code = document.getElementById("otp").value;
+
+    window.confirmationResult.confirm(code)
+      .then((result) => {
+        alert("Phone verified!");
+        console.log(result.user);
+      })
+      .catch(() => {
+        alert("Invalid OTP");
+      });
+  };
+</script>
 </body>
 </html>
