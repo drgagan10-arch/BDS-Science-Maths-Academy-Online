@@ -8,42 +8,38 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f0f4f8; }
-        nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; position: relative; }
+        nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
         .logo { font-size: 1.5rem; font-weight: bold; }
-        .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .nav-links a { color: white; text-decoration: none; padding: 0.5rem; }
+        .nav-links a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem; }
         .nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
-        .hamburger { display: none; font-size: 1.8rem; cursor: pointer; background: none; border: none; color: white; }
-        @media (max-width: 768px) {
-            .nav-links { display: none; width: 100%; flex-direction: column; background: #1e3a8a; padding: 1rem; margin-top: 1rem; border-radius: 16px; }
-            .nav-links.show { display: flex; }
-            .hamburger { display: block; }
-            .auth-buttons { margin-left: auto; }
-        }
         .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
         .card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
         .video-card { background: white; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; transition: 0.2s; }
+        .video-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .video-card iframe { width: 100%; height: 180px; border: none; }
         .video-info { padding: 1rem; }
         .video-category { background: #e0e7ff; padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; display: inline-block; margin-bottom: 8px; }
-        .download-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
-        button { background: #1e3a8a; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; }
+        .download-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; margin-top: 10px; font-size: 0.8rem; text-decoration: none; display: inline-block; }
+        .download-btn:hover { background: #059669; }
         footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
         .auth-buttons { display: flex; gap: 12px; align-items: center; }
         .user-email { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 30px; }
+        button { background: #1e3a8a; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; margin-top: 10px; }
+        @media (max-width: 768px) {
+            .nav-links a { display: inline-block; margin: 0.5rem; }
+            .video-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <nav>
         <div class="logo">📚 BDS Academy</div>
-        <button class="hamburger" id="hamburger">☰</button>
-        <div class="nav-links" id="navLinks">
+        <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="membership.html">Membership</a>
             <a href="dashboard.html">Dashboard</a>
             <a href="live-classes.html">Live Classes</a>
-            <a href="videos.html">Video Library</a>
             <a href="admin.html">Admin</a>
             <a href="videos.html">Videos</a>
         </div>
@@ -53,7 +49,7 @@
     <div class="container">
         <div class="card">
             <h2>📹 Recorded Video Library</h2>
-            <p>Access all recorded lectures according to your membership plan. Videos are downloadable.</p>
+            <p>Access recorded lectures according to your purchased plan(s). Videos are downloadable.</p>
             <div id="videosList">Loading videos...</div>
         </div>
     </div>
@@ -77,37 +73,68 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Mapping from plan to allowed categories
         const planCategories = {
-            'class5_10': ['class5_science','class5_maths','class6_science','class6_maths','class7_science','class7_maths','class8_science','class8_maths','class9_science','class9_maths','class10_science','class10_maths'],
-            'class11_12': ['class11_physics','class11_chemistry','class11_biology','class12_physics','class12_chemistry','class12_biology'],
+            'class5_10': [
+                'class5_science', 'class5_maths',
+                'class6_science', 'class6_maths',
+                'class7_science', 'class7_maths',
+                'class8_science', 'class8_maths',
+                'class9_science', 'class9_maths',
+                'class10_science', 'class10_maths'
+            ],
+            'class11_12': [
+                'class11_physics', 'class11_chemistry', 'class11_biology',
+                'class12_physics', 'class12_chemistry', 'class12_biology'
+            ],
             'neet': ['neet']
         };
 
-        const hamburger = document.getElementById('hamburger');
-        const navLinks = document.getElementById('navLinks');
-        hamburger.addEventListener('click', () => navLinks.classList.toggle('show'));
+        const categoryNames = {
+            'class5_science': 'Class 5 Science', 'class5_maths': 'Class 5 Maths',
+            'class6_science': 'Class 6 Science', 'class6_maths': 'Class 6 Maths',
+            'class7_science': 'Class 7 Science', 'class7_maths': 'Class 7 Maths',
+            'class8_science': 'Class 8 Science', 'class8_maths': 'Class 8 Maths',
+            'class9_science': 'Class 9 Science', 'class9_maths': 'Class 9 Maths',
+            'class10_science': 'Class 10 Science', 'class10_maths': 'Class 10 Maths',
+            'class11_physics': 'Class 11 Physics', 'class11_chemistry': 'Class 11 Chemistry', 'class11_biology': 'Class 11 Biology',
+            'class12_physics': 'Class 12 Physics', 'class12_chemistry': 'Class 12 Chemistry', 'class12_biology': 'Class 12 Biology',
+            'neet': 'NEET Preparation'
+        };
 
         const authDiv = document.getElementById('authButtons');
-        let currentPlan = null;
+        let allowedCategories = [];
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 authDiv.innerHTML = `<span class="user-email">${user.email}</span> <button id="logoutNavBtn">Logout</button>`;
                 document.getElementById('logoutNavBtn').addEventListener('click', () => signOut(auth));
+                
                 const userSnap = await getDoc(doc(db, "users", user.uid));
-                if (userSnap.exists() && userSnap.data().membershipStatus === 'approved') {
-                    currentPlan = userSnap.data().selectedPlan;
-                    if (currentPlan && planCategories[currentPlan]) {
-                        loadVideos();
-                    } else {
-                        document.getElementById('videosList').innerHTML = '<p style="color:#e11d48;">Invalid or no plan assigned. Contact admin.</p>';
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    const purchasedPlans = data.purchasedPlans || [];
+                    if (purchasedPlans.length === 0) {
+                        document.getElementById('videosList').innerHTML = '<p style="color:#e11d48;">❌ No active membership plans. Please purchase a plan.</p>';
+                        return;
                     }
+                    // Merge all categories from all purchased plans
+                    allowedCategories = [];
+                    purchasedPlans.forEach(plan => {
+                        if (planCategories[plan]) {
+                            allowedCategories.push(...planCategories[plan]);
+                        }
+                    });
+                    allowedCategories = [...new Set(allowedCategories)]; // remove duplicates
+                    loadVideos();
                 } else {
-                    document.getElementById('videosList').innerHTML = '<p style="color:#e11d48;">Please purchase membership and get approved to access video library.</p>';
+                    document.getElementById('videosList').innerHTML = '<p style="color:#e11d48;">❌ User data not found. Please contact admin.</p>';
                 }
             } else {
                 authDiv.innerHTML = `<button id="loginNavBtn">Login / Sign up</button>`;
-                document.getElementById('loginNavBtn').addEventListener('click', () => window.location.href = 'membership.html');
+                document.getElementById('loginNavBtn').addEventListener('click', () => {
+                    window.location.href = 'membership.html';
+                });
                 document.getElementById('videosList').innerHTML = '<p>Please login to view videos.</p>';
             }
         });
@@ -117,9 +144,10 @@
             const snapshot = await getDocs(q);
             let videos = [];
             snapshot.forEach(doc => videos.push({ id: doc.id, ...doc.data() }));
-            // Filter by allowed categories
-            const allowed = planCategories[currentPlan];
-            videos = videos.filter(v => allowed.includes(v.category));
+            
+            // Filter videos by allowed categories
+            videos = videos.filter(v => allowedCategories.includes(v.category));
+            
             const container = document.getElementById('videosList');
             if (videos.length === 0) {
                 container.innerHTML = '<p>No videos available for your plan yet. Check back later.</p>';
@@ -127,7 +155,7 @@
             }
             let html = `<div class="video-grid">`;
             videos.forEach(video => {
-                // Embed YouTube or generic video link
+                // Convert YouTube URLs to embed format
                 let embedUrl = video.videoUrl;
                 if (video.videoUrl.includes('youtube.com/watch')) {
                     embedUrl = video.videoUrl.replace('watch?v=', 'embed/');
@@ -138,16 +166,34 @@
                     <div class="video-card">
                         <iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe>
                         <div class="video-info">
-                            <span class="video-category">${video.category.replace('_',' ').toUpperCase()}</span>
-                            <h3>${video.title}</h3>
-                            <p>${video.description || ''}</p>
+                            <span class="video-category">${categoryNames[video.category] || video.category.replace('_',' ').toUpperCase()}</span>
+                            <h3>${escapeHtml(video.title)}</h3>
+                            <p>${escapeHtml(video.description || '')}</p>
                             <a href="${video.videoUrl}" download class="download-btn" target="_blank"><i class="fas fa-download"></i> Download</a>
+                            <br>
+                            <button class="watchDetailsBtn" data-id="${video.id}">📺 Watch & Take Notes</button>
                         </div>
                     </div>
                 `;
             });
             html += `</div>`;
             container.innerHTML = html;
+            
+            document.querySelectorAll('.watchDetailsBtn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.location.href = `video-detail.html?id=${btn.dataset.id}`;
+                });
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
     </script>
 </body>
