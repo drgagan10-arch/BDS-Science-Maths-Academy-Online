@@ -74,6 +74,9 @@
                 <button id="submitTransactionBtn">Submit for Approval</button>
             </div>
             <div id="membershipStatusMsg"></div>
+            <hr style="margin: 20px 0;">
+            <h3>Your Purchased Plans</h3>
+            <div id="purchasedPlansList"></div>
         </div>
     </div>
 
@@ -82,7 +85,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCEDiAXK2lrXQI_RQMSMC7MlueyNBjKUAQ",
@@ -107,6 +110,7 @@
         const toggleBtn = document.getElementById('toggleBtn');
         const googleBtn = document.getElementById('googleBtn');
         const authError = document.getElementById('authError');
+        const purchasedPlansDiv = document.getElementById('purchasedPlansList');
 
         function updateNavbar(user) {
             if (user) {
@@ -126,6 +130,7 @@
                 loginCard.style.display = 'none';
                 membershipCard.style.display = 'block';
                 loadUserMembershipStatus(user.uid);
+                loadPurchasedPlans(user.uid);
             } else {
                 loginCard.style.display = 'block';
                 membershipCard.style.display = 'none';
@@ -135,21 +140,39 @@
         async function loadUserMembershipStatus(uid) {
             const userRef = doc(db, "users", uid);
             const snap = await getDoc(userRef);
-            let status = 'pending';
-            let plan = '';
-            if (snap.exists()) {
-                status = snap.data().membershipStatus || 'pending';
-                plan = snap.data().selectedPlan || '';
-            } else {
-                await setDoc(userRef, { email: currentUser.email, membershipStatus: 'pending', transactionId: null, selectedPlan: '' });
+            if (!snap.exists()) {
+                await setDoc(userRef, { email: currentUser.email, membershipStatus: 'pending', transactionId: null, purchasedPlans: [] });
             }
-            const msgDiv = document.getElementById('membershipStatusMsg');
-            if (status === 'approved') {
-                msgDiv.innerHTML = `<p class="success">✅ Your membership (${plan}) is ACTIVE. You can access live classes.</p>`;
-            } else if (status === 'rejected') {
-                msgDiv.innerHTML = '<p class="error">❌ Your membership was rejected. Please contact support.</p>';
-            } else {
-                msgDiv.innerHTML = '<p style="color:#f59e0b;">⏳ Your membership is pending approval. Admin will review your transaction ID and plan.</p>';
+        }
+
+        async function loadPurchasedPlans(uid) {
+            const userRef = doc(db, "users", uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                const purchasedPlans = data.purchasedPlans || [];
+                const pendingPlans = data.pendingPlans || [];
+                if (purchasedPlans.length === 0 && pendingPlans.length === 0) {
+                    purchasedPlansDiv.innerHTML = '<p>No plans purchased yet.</p>';
+                } else {
+                    let html = '<ul>';
+                    purchasedPlans.forEach(plan => {
+                        let planName = '';
+                        if (plan === 'class5_10') planName = 'Classes 5-10 (Science & Maths)';
+                        else if (plan === 'class11_12') planName = 'Classes 11-12 Science';
+                        else if (plan === 'neet') planName = 'NEET Preparation';
+                        html += `<li>✅ ${planName} (Approved)</li>`;
+                    });
+                    pendingPlans.forEach(plan => {
+                        let planName = '';
+                        if (plan === 'class5_10') planName = 'Classes 5-10 (Science & Maths)';
+                        else if (plan === 'class11_12') planName = 'Classes 11-12 Science';
+                        else if (plan === 'neet') planName = 'NEET Preparation';
+                        html += `<li>⏳ ${planName} (Pending Approval)</li>`;
+                    });
+                    html += '</ul>';
+                    purchasedPlansDiv.innerHTML = html;
+                }
             }
         }
 
@@ -200,11 +223,18 @@
                 return;
             }
             const userRef = doc(db, "users", currentUser.uid);
-            await updateDoc(userRef, {
-                transactionId: tid,
-                membershipStatus: 'pending',
-                selectedPlan: selectedPlan
-            });
+            const userSnap = await getDoc(userRef);
+            const existingPending = userSnap.exists() ? (userSnap.data().pendingPlans || []) : [];
+            if (!existingPending.includes(selectedPlan)) {
+                await updateDoc(userRef, {
+                    pendingPlans: arrayUnion(selectedPlan),
+                    transactionId: tid,
+                    membershipStatus: 'pending'
+                });
+            } else {
+                alert("This plan is already pending approval.");
+                return;
+            }
             alert("Transaction ID submitted! Admin will approve soon.");
             location.reload();
         });
@@ -217,9 +247,8 @@
                 const userRef = doc(db, "users", user.uid);
                 const snap = await getDoc(userRef);
                 if (!snap.exists()) {
-                    await setDoc(userRef, { email: user.email, membershipStatus: 'pending', transactionId: null, selectedPlan: '' });
+                    await setDoc(userRef, { email: user.email, membershipStatus: 'pending', transactionId: null, purchasedPlans: [], pendingPlans: [] });
                 }
-                await loadUserMembershipStatus(user.uid);
             }
         });
     </script>
