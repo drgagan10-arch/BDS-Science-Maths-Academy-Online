@@ -19,6 +19,9 @@
         footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
         .auth-buttons { display: flex; gap: 12px; align-items: center; }
         .user-email { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 30px; }
+        .progress-bar { height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: #2563eb; width: 0%; border-radius: 10px; }
+        .plan-badge { background: #e0e7ff; padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; display: inline-block; margin-right: 8px; margin-bottom: 8px; }
         @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
     </style>
 </head>
@@ -31,7 +34,7 @@
             <a href="dashboard.html">Dashboard</a>
             <a href="live-classes.html">Live Classes</a>
             <a href="admin.html">Admin</a>
-         <a href="videos.html">Videos</a>
+            <a href="videos.html">Videos</a>
         </div>
         <div class="auth-buttons" id="authButtons"></div>
     </nav>
@@ -40,10 +43,15 @@
         <div class="card">
             <h2>📊 Your Dashboard</h2>
             <div id="statusBox"></div>
+            <div id="plansBox" style="margin-top: 10px;"></div>
         </div>
         <div class="card" id="upcomingClassesCard" style="display:none;">
-            <h3>📅 Upcoming Live Classes (Next 7 days) – Based on your plan</h3>
+            <h3>📅 Upcoming Live Classes (Next 7 days)</h3>
             <div id="upcomingList"></div>
+        </div>
+        <div class="card" id="progressCard" style="display:none;">
+            <h3>📈 Your Video Progress (All Plans)</h3>
+            <div id="progressStats"></div>
         </div>
     </div>
 
@@ -82,15 +90,9 @@
             'neet': ['neet']
         };
 
-        const categoryNames = {
-            'class5_science': 'Class 5 Science', 'class5_maths': 'Class 5 Maths',
-            'class6_science': 'Class 6 Science', 'class6_maths': 'Class 6 Maths',
-            'class7_science': 'Class 7 Science', 'class7_maths': 'Class 7 Maths',
-            'class8_science': 'Class 8 Science', 'class8_maths': 'Class 8 Maths',
-            'class9_science': 'Class 9 Science', 'class9_maths': 'Class 9 Maths',
-            'class10_science': 'Class 10 Science', 'class10_maths': 'Class 10 Maths',
-            'class11_physics': 'Class 11 Physics', 'class11_chemistry': 'Class 11 Chemistry', 'class11_biology': 'Class 11 Biology',
-            'class12_physics': 'Class 12 Physics', 'class12_chemistry': 'Class 12 Chemistry', 'class12_biology': 'Class 12 Biology',
+        const planNames = {
+            'class5_10': 'Classes 5-10 (Science & Maths)',
+            'class11_12': 'Classes 11-12 Science (PCB)',
             'neet': 'NEET Preparation'
         };
 
@@ -112,26 +114,70 @@
         async function showDashboard(uid) {
             const userRef = doc(db, "users", uid);
             const snap = await getDoc(userRef);
-            let status = 'pending';
-            let plan = '';
-            if (snap.exists()) {
-                status = snap.data().membershipStatus || 'pending';
-                plan = snap.data().selectedPlan;
+            if (!snap.exists()) {
+                document.getElementById('statusBox').innerHTML = '<p style="color:#e11d48;">User data not found.</p>';
+                return;
             }
+            const data = snap.data();
+            const purchasedPlans = data.purchasedPlans || [];
+            const pendingPlans = data.pendingPlans || [];
+
             const statusBox = document.getElementById('statusBox');
-            if (status === 'approved' && plan && planCategories[plan]) {
-                statusBox.innerHTML = `<p style="color:#16a34a;">✅ Your membership (${plan}) is ACTIVE. You have access to your plan's live classes.</p>`;
+            const plansBox = document.getElementById('plansBox');
+
+            if (purchasedPlans.length === 0 && pendingPlans.length === 0) {
+                statusBox.innerHTML = '<p style="color:#f59e0b;">⏳ No membership plans found. Please purchase a plan.</p>';
+                document.getElementById('upcomingClassesCard').style.display = 'none';
+                document.getElementById('progressCard').style.display = 'none';
+                return;
+            }
+
+            // Show status
+            let statusHtml = '';
+            if (purchasedPlans.length > 0) {
+                statusHtml += '<p style="color:#16a34a;">✅ Approved Plans: ';
+                purchasedPlans.forEach(p => { statusHtml += `${planNames[p]}, `; });
+                statusHtml = statusHtml.slice(0, -2) + '</p>';
+            }
+            if (pendingPlans.length > 0) {
+                statusHtml += '<p style="color:#f59e0b;">⏳ Pending Approval: ';
+                pendingPlans.forEach(p => { statusHtml += `${planNames[p]}, `; });
+                statusHtml = statusHtml.slice(0, -2) + '</p>';
+            }
+            statusBox.innerHTML = statusHtml;
+
+            // Show plan badges
+            let plansHtml = '<div>';
+            purchasedPlans.forEach(p => {
+                plansHtml += `<span class="plan-badge">✅ ${planNames[p]}</span>`;
+            });
+            pendingPlans.forEach(p => {
+                plansHtml += `<span class="plan-badge" style="background:#fed7aa;">⏳ ${planNames[p]}</span>`;
+            });
+            plansHtml += '</div>';
+            plansBox.innerHTML = plansHtml;
+
+            if (purchasedPlans.length > 0) {
                 document.getElementById('upcomingClassesCard').style.display = 'block';
-                loadUpcomingClasses(plan);
-            } else if (status === 'rejected') {
-                statusBox.innerHTML = '<p style="color:#e11d48;">❌ Your membership was rejected. Please contact admin.</p>';
+                document.getElementById('progressCard').style.display = 'block';
+                loadUpcomingClasses(purchasedPlans);
+                loadProgressStats(uid, purchasedPlans);
             } else {
-                statusBox.innerHTML = '<p style="color:#f59e0b;">⏳ Your membership is pending approval. Upload transaction ID on Membership page.</p>';
+                document.getElementById('upcomingClassesCard').style.display = 'none';
+                document.getElementById('progressCard').style.display = 'none';
             }
         }
 
-        async function loadUpcomingClasses(plan) {
-            const allowed = planCategories[plan];
+        async function loadUpcomingClasses(purchasedPlans) {
+            // Merge all allowed categories from all purchased plans
+            let allowedCategories = [];
+            purchasedPlans.forEach(plan => {
+                if (planCategories[plan]) {
+                    allowedCategories.push(...planCategories[plan]);
+                }
+            });
+            allowedCategories = [...new Set(allowedCategories)];
+
             const now = new Date();
             const nextWeek = new Date();
             nextWeek.setDate(now.getDate() + 7);
@@ -141,21 +187,20 @@
             snapshot.forEach(doc => {
                 const cls = doc.data();
                 const clsDate = new Date(cls.dateTime);
-                if (clsDate >= now && clsDate <= nextWeek && allowed.includes(cls.category)) {
+                if (clsDate >= now && clsDate <= nextWeek && allowedCategories.includes(cls.category)) {
                     upcoming.push(cls);
                 }
             });
             const container = document.getElementById('upcomingList');
             if (upcoming.length === 0) {
-                container.innerHTML = '<p>No upcoming classes for your plan in the next 7 days.</p>';
+                container.innerHTML = '<p>No upcoming classes for your plans in the next 7 days.</p>';
                 return;
             }
             let html = '';
             upcoming.forEach(cls => {
-                const catDisplay = categoryNames[cls.category] || cls.category.replace('_',' ').toUpperCase();
                 html += `<div class="class-item">
-                            <div><strong>${cls.title}</strong><br>${catDisplay} · ${new Date(cls.dateTime).toLocaleString()}</div>
-                            <button class="joinBtn" data-link="${cls.zoomLink}" data-pwd="${cls.zoomPassword || ''}">Join</button>
+                            <div><strong>${escapeHtml(cls.title)}</strong><br>${cls.category.replace('_',' ')} · ${new Date(cls.dateTime).toLocaleString()}</div>
+                            <button class="joinBtn" data-link="${escapeHtml(cls.zoomLink)}" data-pwd="${escapeHtml(cls.zoomPassword || '')}">Join</button>
                          </div>`;
             });
             container.innerHTML = html;
@@ -166,6 +211,68 @@
                     if (pwd) alert(`Zoom password: ${pwd}`);
                     window.open(link, '_blank');
                 });
+            });
+        }
+
+        async function loadProgressStats(uid, purchasedPlans) {
+            // Get all videos that belong to the user's purchased categories
+            let allowedCategories = [];
+            purchasedPlans.forEach(plan => {
+                if (planCategories[plan]) {
+                    allowedCategories.push(...planCategories[plan]);
+                }
+            });
+            allowedCategories = [...new Set(allowedCategories)];
+            
+            const videosSnap = await getDocs(collection(db, "videos"));
+            let totalVideos = 0;
+            videosSnap.forEach(doc => {
+                if (allowedCategories.includes(doc.data().category)) {
+                    totalVideos++;
+                }
+            });
+            
+            // Count completed videos from videoProgress
+            const progressQuery = query(collection(db, "videoProgress"), where("userId", "==", uid), where("watched", "==", true));
+            const progressSnap = await getDocs(progressQuery);
+            let completedCount = 0;
+            progressSnap.forEach(doc => {
+                // Only count if the video's category is still allowed (plan still active)
+                // In practice, you'd need to fetch the video's category. Simpler: count all.
+                completedCount++;
+            });
+            
+            // For accuracy, we should filter by allowed categories. Fetch completed video IDs.
+            const completedVideos = [];
+            progressSnap.forEach(doc => {
+                const progData = doc.data();
+                completedVideos.push(progData.videoId);
+            });
+            // Now get video details for those completed IDs to check category
+            let actualCompleted = 0;
+            for (let vid of completedVideos) {
+                const videoDoc = await getDoc(doc(db, "videos", vid));
+                if (videoDoc.exists() && allowedCategories.includes(videoDoc.data().category)) {
+                    actualCompleted++;
+                }
+            }
+            
+            const percent = totalVideos > 0 ? Math.round((actualCompleted / totalVideos) * 100) : 0;
+            const statsHtml = `
+                <p>You have completed <strong>${actualCompleted}</strong> out of <strong>${totalVideos}</strong> videos in your purchased plans.</p>
+                <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%;"></div></div>
+                <p style="margin-top: 8px;">Overall progress: ${percent}%</p>
+            `;
+            document.getElementById('progressStats').innerHTML = statsHtml;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
             });
         }
     </script>
