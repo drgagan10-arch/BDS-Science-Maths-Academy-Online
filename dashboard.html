@@ -6,23 +6,24 @@
     <title>BDS Academy | Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f0f4f8; }
-        nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: bold; }
-        .nav-links a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem; }
-        .nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        button { background: #1e3a8a; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Inter', system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #f0f4f8 0%, #e2e8f0 100%); min-height: 100vh; }
+        nav { background: linear-gradient(135deg, #0f2b4d 0%, #1e3a8a 100%); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(120deg, #fff, #bae6fd); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .nav-links a { color: white; text-decoration: none; margin: 0 0.5rem; padding: 0.5rem 1rem; border-radius: 40px; transition: 0.2s; font-weight: 500; }
+        .nav-links a:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card { background: rgba(255,255,255,0.96); backdrop-filter: blur(2px); border-radius: 2rem; padding: 1.8rem; margin-bottom: 2rem; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.5); }
+        button { background: #1e3a8a; color: white; border: none; padding: 8px 20px; border-radius: 60px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        button:hover { background: #0f2b6d; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); }
         .class-item { border-bottom: 1px solid #e2e8f0; padding: 1rem 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
+        footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); }
         .auth-buttons { display: flex; gap: 12px; align-items: center; }
         .user-email { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 30px; }
         .progress-bar { height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 8px; }
         .progress-fill { height: 100%; background: #2563eb; width: 0%; border-radius: 10px; }
         .plan-badge { background: #e0e7ff; padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; display: inline-block; margin-right: 8px; margin-bottom: 8px; }
-        @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
+        @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.3rem; } .container { padding: 0 1rem; } }
     </style>
 </head>
 <body>
@@ -132,7 +133,6 @@
                 return;
             }
 
-            // Show status
             let statusHtml = '';
             if (purchasedPlans.length > 0) {
                 statusHtml += '<p style="color:#16a34a;">✅ Approved Plans: ';
@@ -146,7 +146,6 @@
             }
             statusBox.innerHTML = statusHtml;
 
-            // Show plan badges
             let plansHtml = '<div>';
             purchasedPlans.forEach(p => {
                 plansHtml += `<span class="plan-badge">✅ ${planNames[p]}</span>`;
@@ -169,7 +168,6 @@
         }
 
         async function loadUpcomingClasses(purchasedPlans) {
-            // Merge all allowed categories from all purchased plans
             let allowedCategories = [];
             purchasedPlans.forEach(plan => {
                 if (planCategories[plan]) {
@@ -215,7 +213,6 @@
         }
 
         async function loadProgressStats(uid, purchasedPlans) {
-            // Get all videos that belong to the user's purchased categories
             let allowedCategories = [];
             purchasedPlans.forEach(plan => {
                 if (planCategories[plan]) {
@@ -232,23 +229,18 @@
                 }
             });
             
-            // Count completed videos from videoProgress
             const progressQuery = query(collection(db, "videoProgress"), where("userId", "==", uid), where("watched", "==", true));
             const progressSnap = await getDocs(progressQuery);
             let completedCount = 0;
             progressSnap.forEach(doc => {
-                // Only count if the video's category is still allowed (plan still active)
-                // In practice, you'd need to fetch the video's category. Simpler: count all.
                 completedCount++;
             });
             
-            // For accuracy, we should filter by allowed categories. Fetch completed video IDs.
             const completedVideos = [];
             progressSnap.forEach(doc => {
                 const progData = doc.data();
                 completedVideos.push(progData.videoId);
             });
-            // Now get video details for those completed IDs to check category
             let actualCompleted = 0;
             for (let vid of completedVideos) {
                 const videoDoc = await getDoc(doc(db, "videos", vid));
