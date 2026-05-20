@@ -6,22 +6,26 @@
     <title>BDS Academy | Admin Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f0f4f8; }
-        nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: bold; }
-        .nav-links a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem; }
-        .nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border-radius: 16px; border: 1px solid #cbd5e1; }
-        button { background: #1e3a8a; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; margin-right: 8px; margin-top: 5px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Inter', system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #f0f4f8 0%, #e2e8f0 100%); min-height: 100vh; }
+        nav { background: linear-gradient(135deg, #0f2b4d 0%, #1e3a8a 100%); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(120deg, #fff, #bae6fd); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .nav-links a { color: white; text-decoration: none; margin: 0 0.5rem; padding: 0.5rem 1rem; border-radius: 40px; transition: 0.2s; font-weight: 500; }
+        .nav-links a:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .container { max-width: 1280px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card { background: rgba(255,255,255,0.96); backdrop-filter: blur(2px); border-radius: 2rem; padding: 1.8rem; margin-bottom: 2rem; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.5); transition: 0.2s; }
+        .card:hover { box-shadow: 0 25px 40px -14px rgba(0,0,0,0.12); }
+        input, select, textarea { width: 100%; padding: 12px 16px; margin: 8px 0; border-radius: 60px; border: 1.5px solid #e2e8f0; background: white; font-size: 1rem; transition: 0.2s; outline: none; }
+        textarea { border-radius: 28px; resize: vertical; }
+        input:focus, select:focus, textarea:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,0.2); }
+        button { background: #1e3a8a; color: white; border: none; padding: 10px 22px; border-radius: 60px; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        button:hover { background: #0f2b6d; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); }
         .pending-user, .query-item { border-bottom: 1px solid #e2e8f0; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .pending-plan-item { background: #fef3c7; padding: 8px; margin: 5px 0; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-        footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
+        footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); }
         .class-item, .video-item { background: #f8fafc; margin: 10px 0; padding: 12px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .quiz-question { background: #f1f5f9; padding: 12px; border-radius: 16px; margin: 10px 0; }
-        @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.5rem; } }
+        @media (max-width: 768px) { .nav-links a { display: inline-block; margin: 0.3rem; } .container { padding: 0 1rem; } .card { padding: 1.2rem; } }
     </style>
 </head>
 <body>
@@ -48,19 +52,14 @@
         </div>
 
         <div id="adminContent" style="display:none;">
-            <!-- NEW: Pending Plan Approvals (Multiple plans per student) -->
             <div class="card">
                 <h3>📝 Pending Plan Approvals</h3>
                 <div id="pendingUsersList">Loading...</div>
             </div>
-
-            <!-- Existing: Student Queries -->
             <div class="card">
                 <h3>💬 Student Queries</h3>
                 <div id="queriesList">Loading...</div>
             </div>
-
-            <!-- Existing: Upload Live Class (full category dropdown - unchanged) -->
             <div class="card">
                 <h3>➕ Upload New Live Class</h3>
                 <select id="classCategory">
@@ -96,14 +95,10 @@
                 <input type="text" id="zoomPassword" placeholder="Meeting Password (optional)">
                 <button id="uploadClassBtn">Upload Class</button>
             </div>
-
-            <!-- Existing: Manage Classes -->
             <div class="card">
                 <h3>📋 Manage Classes</h3>
                 <div id="adminClassList">Loading...</div>
             </div>
-
-            <!-- Existing: Upload Recorded Video (full category dropdown) -->
             <div class="card">
                 <h3>🎬 Upload Recorded Video</h3>
                 <select id="videoCategory">
@@ -129,14 +124,10 @@
                 <textarea id="videoDesc" rows="2" placeholder="Short description"></textarea>
                 <button id="uploadVideoBtn">Upload Video</button>
             </div>
-
-            <!-- Existing: Manage Videos -->
             <div class="card">
                 <h3>📋 Manage Videos</h3>
                 <div id="adminVideoList">Loading...</div>
             </div>
-
-            <!-- Existing: PDF Notes Upload -->
             <div class="card">
                 <h3>📄 Upload PDF Notes (for a video)</h3>
                 <select id="pdfVideoSelect"></select>
@@ -145,8 +136,6 @@
                 <button id="uploadPdfBtn">Attach PDF</button>
                 <div id="pdfList"></div>
             </div>
-
-            <!-- Existing: Quiz Creation -->
             <div class="card">
                 <h3>📝 Create Quiz for a Video</h3>
                 <select id="quizVideoSelect"></select>
@@ -154,8 +143,6 @@
                 <button id="addQuestionBtn">+ Add Question</button>
                 <button id="saveQuizBtn">Save Quiz</button>
             </div>
-
-            <!-- Existing: Send Notification -->
             <div class="card">
                 <h3>🔔 Send Notification to Students</h3>
                 <input type="text" id="notifyTitle" placeholder="Title (e.g., New Video Added)">
@@ -168,7 +155,6 @@
                 </select>
                 <button id="sendNotificationBtn">Send Notification</button>
             </div>
-
             <button id="adminLogoutBtn" style="background:#dc2626;">Logout from Admin</button>
         </div>
     </div>
@@ -226,9 +212,7 @@
             hideAdminPanel();
         });
 
-        // ========== NEW: Pending Plan Approvals ==========
         async function loadPendingPlans() {
-            // Users who have at least one pending plan
             const q = query(collection(db, "users"), where("pendingPlans", "array-contains-any", ["class5_10", "class11_12", "neet"]));
             onSnapshot(q, (snap) => {
                 const container = document.getElementById('pendingUsersList');
@@ -281,7 +265,6 @@
             });
         }
 
-        // ========== EXISTING / UNCHANGED FUNCTIONS ==========
         async function loadQueries() {
             const q = query(collection(db, "queries"), orderBy("timestamp", "desc"));
             onSnapshot(q, (snap) => {
@@ -356,7 +339,6 @@
             document.querySelectorAll('.deleteVideoBtn').forEach(btn => btn.addEventListener('click', async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "videos", btn.dataset.id)); loadAdminVideos(); } }));
         }
 
-        // PDF & Quiz & Notification functions (unchanged)
         async function loadVideoSelects() {
             const snap = await getDocs(collection(db, "videos"));
             const options = [];
