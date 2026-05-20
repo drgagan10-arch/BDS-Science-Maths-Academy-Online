@@ -6,29 +6,31 @@
     <title>BDS Academy | Video Library</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f0f4f8; }
-        nav { background: #1e3a8a; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: bold; }
-        .nav-links a { color: white; text-decoration: none; margin: 0 1rem; padding: 0.5rem; }
-        .nav-links a:hover { background: #3b5e9c; border-radius: 8px; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
-        .video-card { background: white; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; transition: 0.2s; }
-        .video-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Inter', system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #f0f4f8 0%, #e2e8f0 100%); min-height: 100vh; }
+        nav { background: linear-gradient(135deg, #0f2b4d 0%, #1e3a8a 100%); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(120deg, #fff, #bae6fd); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .nav-links a { color: white; text-decoration: none; margin: 0 0.5rem; padding: 0.5rem 1rem; border-radius: 40px; transition: 0.2s; font-weight: 500; }
+        .nav-links a:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .container { max-width: 1280px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card { background: rgba(255,255,255,0.96); backdrop-filter: blur(2px); border-radius: 2rem; padding: 1.8rem; margin-bottom: 2rem; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.5); }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.8rem; margin-top: 1rem; }
+        .video-card { background: white; border-radius: 1.5rem; overflow: hidden; transition: 0.2s; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03); }
+        .video-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12); }
         .video-card iframe { width: 100%; height: 180px; border: none; }
         .video-info { padding: 1rem; }
         .video-category { background: #e0e7ff; padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; display: inline-block; margin-bottom: 8px; }
-        .download-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; margin-top: 10px; font-size: 0.8rem; text-decoration: none; display: inline-block; }
-        .download-btn:hover { background: #059669; }
-        footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; }
+        .download-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; margin-top: 10px; font-size: 0.8rem; text-decoration: none; display: inline-block; transition: 0.2s; }
+        .download-btn:hover { background: #059669; transform: translateY(-2px); }
+        button { background: #1e3a8a; color: white; border: none; padding: 8px 20px; border-radius: 60px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-top: 10px; }
+        button:hover { background: #0f2b6d; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); }
+        footer { text-align: center; padding: 2rem; background: #1e293b; color: #94a3b8; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); }
         .auth-buttons { display: flex; gap: 12px; align-items: center; }
         .user-email { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 30px; }
-        button { background: #1e3a8a; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; margin-top: 10px; }
         @media (max-width: 768px) {
-            .nav-links a { display: inline-block; margin: 0.5rem; }
+            .nav-links a { display: inline-block; margin: 0.3rem; }
             .video-grid { grid-template-columns: 1fr; }
+            .container { padding: 0 1rem; }
         }
     </style>
 </head>
@@ -73,7 +75,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Mapping from plan to allowed categories
         const planCategories = {
             'class5_10': [
                 'class5_science', 'class5_maths',
@@ -118,14 +119,13 @@
                         document.getElementById('videosList').innerHTML = '<p style="color:#e11d48;">❌ No active membership plans. Please purchase a plan.</p>';
                         return;
                     }
-                    // Merge all categories from all purchased plans
                     allowedCategories = [];
                     purchasedPlans.forEach(plan => {
                         if (planCategories[plan]) {
                             allowedCategories.push(...planCategories[plan]);
                         }
                     });
-                    allowedCategories = [...new Set(allowedCategories)]; // remove duplicates
+                    allowedCategories = [...new Set(allowedCategories)];
                     loadVideos();
                 } else {
                     document.getElementById('videosList').innerHTML = '<p style="color:#e11d48;">❌ User data not found. Please contact admin.</p>';
@@ -145,7 +145,6 @@
             let videos = [];
             snapshot.forEach(doc => videos.push({ id: doc.id, ...doc.data() }));
             
-            // Filter videos by allowed categories
             videos = videos.filter(v => allowedCategories.includes(v.category));
             
             const container = document.getElementById('videosList');
@@ -155,7 +154,6 @@
             }
             let html = `<div class="video-grid">`;
             videos.forEach(video => {
-                // Convert YouTube URLs to embed format
                 let embedUrl = video.videoUrl;
                 if (video.videoUrl.includes('youtube.com/watch')) {
                     embedUrl = video.videoUrl.replace('watch?v=', 'embed/');
